@@ -59,7 +59,7 @@ const login = async(req, res) => {
 
         if(result.rows.length === 0){
             return res.status(401).json({
-                message: "Invalid Email"
+                message: "Invalid Email or Passowrd"
             });
         }
 
@@ -156,12 +156,6 @@ const getMessages = async (req, res) => {
         const senderid = req.user.userId;
         const receiverid = req.params.id;
 
-        console.log({
-            senderid,
-            receiverid,
-            user: req.user
-        });
-
         const result = await pool.query(
             `
             SELECT *
@@ -191,10 +185,39 @@ const getMessages = async (req, res) => {
     }
 }
 
+const createMessages = async (req,res) => {
+    try{
+        const senderid = req.user.userId;
+        const receiverid = req.params.id;
+        const {id, content} = req.body;
+        const result = await pool.query(
+            `
+            INSERT INTO messages
+            (id, sender_id, receiver_id, content, created_at)
+            values($1,$2,$3,$4,CURRENT_TIMESTAMP)
+            RETURNING *
+            ;
+            `,
+            [id, senderid, receiverid, content]
+        );
+
+        res.status(201).json({
+            content: result.rows[0].content,
+        });
+    }catch(e){
+        console.log(e);
+
+        res.json({
+            err : e
+        });
+    }
+}
+
 export {
     register,
     login,
     getUsers,
     getMessages,
-    getAllUsers
+    getAllUsers,
+    createMessages
 }
