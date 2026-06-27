@@ -3,15 +3,19 @@ import Layout from "./pages/Layout";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Sign from "./pages/Sign";
-
-
+import ProtectedLayer from "./pages/ProtectedLayer";
 
 export default function App() {
     return (
         <>
             <Routes>
               <Route element={<Layout></Layout>}>
-                <Route path="/" element={<Dashboard></Dashboard>}>
+                <Route path="/" element=
+                {
+                  <ProtectedLayer>
+                    <Dashboard/>
+                  </ProtectedLayer>
+                  }>
                 </Route>
               </Route>
               <Route path="/Login" element={<Login></Login>}></Route>

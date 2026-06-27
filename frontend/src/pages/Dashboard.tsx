@@ -1,21 +1,23 @@
 import { useState } from "react";
 import Main from "../components/Dashboard/Main";
 import Sidebar from "../components/Dashboard/Sidebar";
+import type{user} from "../type/user"
 
 type Props = {
 };
 
+
 export default function Dashboard({}: Props) {
-    const [rid, setRid] = useState("");    
-    const setId = (rid : string) => {
-        setRid(rid);
+    const [rUser, setRUser] = useState<user | undefined>(undefined);    
+    const setUser = (u : user) => {
+        setRUser(u);
     }
     return (
             <div 
-                className="flex h-full w-full bg-background text-foreground"
+                className="flex h-screen w-full bg-background text-foreground overflow-hidden"
             >
-                <Sidebar sendID={setId}></Sidebar>
-                <Main rId={rid}></Main>
+                <Sidebar sendUser={setUser}></Sidebar>
+                <Main rUser={rUser}></Main>
             </div>
     );
 }

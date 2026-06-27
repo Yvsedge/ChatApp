@@ -189,6 +189,7 @@ export default function Sign({}: Props) {
                     <button 
                         type="submit"
                         className="bg-primary text-primary-foreground px-5 py-3 border border-border text-md font-medium disabled:opacity-40 transition-opacity"
+                        disabled={signUp.isPending}
                     >Register</button>
                 </form>
             </div>

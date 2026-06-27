@@ -1,10 +1,12 @@
 import express from 'express'
-import * as db from "../database/queries.js";
+import verifyToken from "../middleware/auth.js"
+import * as user from "../controllers/userController.js"
+import * as auth from "../controllers/authController.js"
 const router = express.Router();
 
-router.post("/register", db.register);
-router.post("/login", db.login);
-router.get("/", db.getAllUsers);
-router.get("/:id", db.getUsers);
+router.post("/register", auth.register);
+router.post("/login", auth.login);
+router.get("/", verifyToken, user.getAllUsers);
+router.get("/users",verifyToken, user.getUsers);
 
 export default router;
