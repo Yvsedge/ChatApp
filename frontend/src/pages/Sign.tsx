@@ -3,9 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {Link, useNavigate } from "react-router-dom";
 
-type Props = {
-};
-
 type User = {
     id: string,
     firstname: string,
@@ -15,7 +12,7 @@ type User = {
 }
 
 
-export default function Sign({}: Props) {
+export default function Sign() {
     const [first, SetFirst] = useState("");
     const [last, setLast] = useState("");
     const [mail, setMail] = useState("");

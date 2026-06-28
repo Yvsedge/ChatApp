@@ -3,18 +3,16 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import {Link, useNavigate } from "react-router-dom";
 
-type Props = {
-};
-
 type User = {
     mail : string,
     password : string
 }
 
-export default function Login({}: Props) {
+export default function Login() {
     const [mail, setMail] = useState("");
     const [pass, setPass] = useState("");
     const navigate = useNavigate();
+
     const loginUser = useMutation({
         mutationFn: async (user : User) => {
             const response = await fetch(
@@ -45,7 +43,6 @@ export default function Login({}: Props) {
                 "token",
                 data.token
             );
-            console.log(data.id);
             localStorage.setItem(
                 "id",
                 data.id

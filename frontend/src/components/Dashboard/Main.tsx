@@ -5,6 +5,7 @@ import type{user} from "../../type/user"
 import type{Message} from "../../type/message"
 import { SendHorizonal } from "lucide-react";
 import { errortoast } from "../ToastNotifications/notifications";
+import { socket } from "../../socket/socket";
 type Props = {
     rUser : user | undefined,
 };
@@ -24,6 +25,7 @@ type q = {
 export default function Main({rUser}: Props) {
 
     const [content, SetContent] = useState("");
+    // const socket = io("http://localhost:3000");
 
     const {data, isLoading, error} = useQuery<response>({
         queryKey: ["messages", rUser?.id],
@@ -35,12 +37,30 @@ export default function Main({rUser}: Props) {
 
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (rUser) {
             inputRef.current?.focus();
         }
-    }, [rUser]);
+
+        const handleReceive = (obj: Message) => {
+            queryClient.setQueryData(
+                ["messages", obj.sender_id],
+                (old: response | undefined) => ({
+                    message: [
+                        ...(old?.message ?? []),
+                        obj
+                    ]
+                })
+            );
+        };
+        socket.on('receiver_message', handleReceive);
+
+        return () => {
+            socket.off("receiver_message", handleReceive);
+        }
+    }, [queryClient, rUser]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({
@@ -48,12 +68,11 @@ export default function Main({rUser}: Props) {
         });
     }, [msgs]);
 
-    const queryClient = useQueryClient();
+
 
     const sendMessage = useMutation({
         mutationFn: async ({mess, rid} : q) : Promise<msg> => {
             const token = localStorage.getItem('token');
-            console.log(JSON.stringify(mess));
             const res = await fetch(
                 `http://localhost:3000/message/send/${rid}`,{
                 method: "POST",
@@ -119,12 +138,54 @@ export default function Main({rUser}: Props) {
 
     if(isLoading){
         return (
-            <main className="flex-1 p-4 flex flex-col gap-4 animate-pulse">
-                <div className="self-start h-10 w-40 rounded-2xl bg-surface-secondary" />
-                <div className="self-end h-10 w-52 rounded-2xl bg-surface-secondary" />
-                <div className="self-start h-14 w-64 rounded-2xl bg-surface-secondary" />
-                <div className="self-end h-10 w-36 rounded-2xl bg-surface-secondary" />
-            </main>
+        <main className="h-full flex-1 flex flex-col overflow-hidden min-h-0">
+
+            {/*User Profile*/}
+            <div
+                className="flex flex-col p-4 bg-surface-secondary border-b border-border"
+            >
+                <div className="flex gap-3 items-center">
+                    <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
+                        <span className="text-primary-foreground text-xs font-semibold">
+                        </span>
+                    </div>
+                    <p></p>
+                </div>
+            </div>
+            
+            {/* Messages — scrollable, fills space */}
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2 p-4 min-h-0">
+                <div className="flex-grow" />
+                {[...Array(6)].map((_, i) => {
+                        return (
+                            <div key={i} className={`flex ${i%2 ? "justify-end" : "justify-start"}`}>
+                                <p className={`
+                                    rounded-2xl px-4 py-2 max-w-[65%] text-foreground text-sm
+                                    flex justify-center items-center gap-1 bg-bubble-received border border-border animate-pulse`
+                                    }
+                                    >
+                                </p>
+                            </div>
+                        );
+                    })
+                }
+                <div ref={bottomRef}/>
+            </div >
+
+            {/* Input — pinned to bottom */}
+            <div 
+                className="flex gap-2 px-4 h-[57px] border-t border-border bg-card shrink-0 justify-center items-center animate-pulse"
+            >
+                <input
+                    className="flex-1 bg-surface-secondary border border-border rounded-xl px-4 py-2 text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary animate-pulse"
+                />
+                <button
+                    className="bg-primary text-primary-foreground px-5 py-2 rounded-xl text-sm font-medium disabled:opacity-40 transition-opacity animate-pulse"
+                >
+                    <SendHorizonal/>
+                </button>
+            </div>
+        </main>
         );
     }
 

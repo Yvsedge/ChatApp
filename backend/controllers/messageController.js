@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { pool } from '../database/connections.js';
-
-
+import { getIO } from '../socket/index.js';
 const getMessages = async (req, res) => {
     try{
         const senderid = req.user.userId;
@@ -51,6 +50,12 @@ const createMessages = async (req,res) => {
             `,
             [id, senderid, receiverid, content]
         );
+        const message = result.rows[0];
+
+        const io = getIO();
+
+        io.to(receiverid).emit("receiver_message", message);
+        io.to(senderid).emit("receiver_message", message);
 
         res.status(201).json({
             content: result.rows[0].content,
