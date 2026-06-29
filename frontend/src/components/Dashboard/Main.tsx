@@ -6,6 +6,7 @@ import type{Message} from "../../type/message"
 import { SendHorizonal } from "lucide-react";
 import { errortoast } from "../ToastNotifications/notifications";
 import { socket } from "../../socket/socket";
+import {usePresense} from "@/hook/usePresense" 
 type Props = {
     rUser : user | undefined,
 };
@@ -21,11 +22,27 @@ type q = {
     rid : string
 }
 
+type special = {
+    id: string,
+    firstname: string,
+    lastname: string,
+    email: string,
+    content: string,
+    created_at: string
+}
+
+type res = {
+    users: special[]
+}
+
 
 export default function Main({rUser}: Props) {
 
-    const [content, SetContent] = useState("");
-    // const socket = io("http://localhost:3000");
+    const {typingUsers} = usePresense();
+
+    const [content, setContent] = useState("");
+    const isTyping = useRef(false);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const {data, isLoading, error} = useQuery<response>({
         queryKey: ["messages", rUser?.id],
@@ -38,6 +55,10 @@ export default function Main({rUser}: Props) {
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
+
+
+    useEffect(() => {
+    }, [])
 
     useEffect(() => {
         if (rUser) {
@@ -53,6 +74,32 @@ export default function Main({rUser}: Props) {
                         obj
                     ]
                 })
+            );
+            const currId = localStorage.getItem("id");
+            const otherUserId =
+                obj.sender_id === currId
+                    ? obj.receiver_id
+                    : obj.sender_id;
+            queryClient.setQueryData<res>(
+                ["userlist"],
+                (old) => {
+                    if (!old) return old;
+
+                    const users = old.users.map((user) =>
+                        user.id === otherUserId
+                            ? {
+                                ...user,
+                                content: obj.content,
+                                created_at: obj.created_at,
+                            }
+                            : user
+                    );
+
+                    return {
+                        ...old,
+                        users,
+                    };
+                }
             );
         };
         socket.on('receiver_message', handleReceive);
@@ -117,7 +164,7 @@ export default function Main({rUser}: Props) {
             queryKey: ["messages", rUser?.id],
         });
 
-        SetContent("");
+        setContent("");
         },
 
         onError: (_,__,context) => {
@@ -205,8 +252,40 @@ export default function Main({rUser}: Props) {
         };
         await sendMessage.mutateAsync({mess: obj, rid: rUser?.id ?? ""});
 
-        SetContent("");
+        setContent("");
+        const id = localStorage.getItem("id");
+        socket.emit("stop_typing", {
+            senderId: id,
+            receiverId: rUser?.id,
+        });
     }
+
+    const handleChange = (value: string) => {   
+        setContent(value);
+        const id = localStorage.getItem("id");
+
+        if (!isTyping.current) {
+            socket.emit("typing", {
+                senderId: id,
+                receiverId: rUser?.id,
+            });
+
+            isTyping.current = true;
+        }
+
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+            socket.emit("stop_typing", {
+                senderId: id,
+                receiverId: rUser?.id,
+            });
+
+            isTyping.current = false;
+        }, 1000);
+    };
 
     if (rUser === undefined) {
     return (
@@ -230,7 +309,10 @@ export default function Main({rUser}: Props) {
                             {(rUser.firstname[0] + (rUser.lastname[0] ?? "")).toUpperCase()}
                         </span>
                     </div>
-                    <p>{`${rUser.firstname} ${rUser.lastname}`}</p>
+                    <p className="flex flex-col">
+                        <span>{`${rUser.firstname} ${rUser.lastname}`}</span>
+                        <span className="text-muted-foreground text-xs truncate ">{typingUsers.has(rUser?.id) && "...is Typing"}</span>
+                    </p>
                 </div>
             </div>
             
@@ -273,7 +355,7 @@ export default function Main({rUser}: Props) {
                 <input
                     type="text"
                     value={content}
-                    onChange={e => SetContent(e.currentTarget.value)}
+                    onChange={e => handleChange(e.currentTarget.value)}
                     placeholder="Type a message..."
                     ref={inputRef}
                     className="flex-1 bg-surface-secondary border border-border rounded-xl px-4 py-2 text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"

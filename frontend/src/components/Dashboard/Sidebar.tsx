@@ -1,9 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type{user} from "../../type/user"
 import { getUsers } from "@/apis/getUser";
 import { errortoast } from "../ToastNotifications/notifications";
+import {usePresense} from "@/hook/usePresense" 
+import { socket } from "@/socket/socket";
 type Props = {
     sendUser : (u : user) => void;
 };
@@ -11,10 +13,17 @@ type Props = {
 export default function Sidebar({ sendUser }: Props) {
     const [searchTerm, SetSearchTerm] = useState("");
     const [selectedUser, setSelectedUser] = useState("");
+    const {onlineUsers, typingUsers} = usePresense();
+
     const { data, isLoading, error } = useQuery({
         queryKey: ["userlist"],
         queryFn: getUsers
     });
+    useEffect(() => {
+        if (error) {
+            errortoast("Error");
+        }
+    }, [error]);
     const navigate = useNavigate();
     const queryClient = useQueryClient();
 
@@ -30,6 +39,7 @@ export default function Sidebar({ sendUser }: Props) {
     }
 
     const handleLogout = () => {
+        socket.disconnect();
 
         localStorage.removeItem("token");
         localStorage.removeItem("id");
@@ -59,9 +69,7 @@ export default function Sidebar({ sendUser }: Props) {
         );
     }
 
-    if(error){
-        errortoast("Error");
-    } 
+
 
     return (
         <aside className="h-full w-80 flex flex-col border-r border-border bg-card shrink-0">
@@ -91,17 +99,38 @@ export default function Sidebar({ sendUser }: Props) {
                         onClick={() => handleSelect(u)}
                         className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-secondary transition-colors text-left border-b border-border cursor-pointer ${selectedUser === u.id && "bg-surface-secondary border-l-4 border-l-primary"}`}
                     >
-                        <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
-                            <span className="text-primary-foreground text-xs font-semibold">
-                                {(u.firstname[0] + (u.lastname[0] ?? "")).toUpperCase()}
-                            </span>
+                        <div className="relative">
+                            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center shrink-0">
+                                <span className="text-primary-foreground text-xs font-semibold">
+                                    {(u.firstname[0] + (u.lastname[0] ?? "")).toUpperCase()}
+                                </span>
+                            </div>
+                                {onlineUsers.includes(u.id) && (
+                                    <div className="absolute bottom-0 right-0
+                                                    w-3 h-3 rounded-full
+                                                    bg-green-500 border-2 border-card"/>
+                                )}
                         </div>
                         <div className="flex flex-col min-w-0">
                             <span className="text-foreground text-sm font-medium truncate">
                                 {u.firstname} {u.lastname}
                             </span>
-                            <span className="text-muted-foreground text-xs truncate">
-                                {u.email}
+                            <span className="text-muted-foreground text-xs truncate flex items-center gap-2">
+                                {typingUsers.has(u.id)
+                                        ? "Typing..."
+                                        : u.content ?? "Start a conversation"}
+                                    <span className="text-xs text-muted-foreground">
+                                {u.created_at
+                                    ? new Date(u.created_at).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })
+                                    : ""}
+                            </span>
+
+                            </span>
+                            <span className="text-muted-foreground text-xs truncate flex items-center gap-2">
+                                
                             </span>
                         </div>
                     </button>

@@ -1,7 +1,15 @@
-import type{user} from "../type/user"
+
+type special = {
+    id: string,
+    firstname: string,
+    lastname: string,
+    email: string,
+    content: string,
+    created_at: string
+}
 
 type res = {
-    users: user[]
+    users: special[]
 }
 
 export const getUsers = async() : Promise<res> => {
