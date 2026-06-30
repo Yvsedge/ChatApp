@@ -69,7 +69,106 @@ const createMessages = async (req,res) => {
     }
 }
 
+const deleteMessages = async (req, res) => {
+    try{
+        const senderid = req.user.userId;
+        const receiverid = req.params.id;
+        const id = req.body.id;
+        const result = await pool.query(
+            `
+                DELETE FROM messages
+                WHERE id = $1
+                AND
+                sender_id = $2
+                AND
+                receiver_id = $3
+                RETURNING *
+            `,
+            [id, senderid, receiverid]
+        );
+        const message = result.rows;
+        const deletedMessage = result.rows[0];
+
+        const io = getIO();
+
+        io.to(senderid).emit("message_deleted", {
+            id: deletedMessage.id,
+            receiverId: receiverid,
+            senderId : senderid,
+        });
+
+        io.to(receiverid).emit("message_deleted", {
+            id: deletedMessage.id,
+            senderId: senderid,
+            receiverId: receiverid,
+        });
+
+        res.status(200).json({
+            content: message
+        });
+    }catch(e){
+        console.log(e);
+
+        res.json({
+            err: e
+        });
+    }
+}
+
+const editMessages = async (req, res) => {
+    try{
+        const senderid = req.user.userId;
+        const receiverid = req.params.id;
+        const {id, content} = req.body;
+        const result = await pool.query(
+            `
+            UPDATE messages
+            SET content = $1
+            WHERE id = $2
+            AND
+            sender_id = $3
+            AND
+            receiver_id = $4
+            Returning *
+            `,
+            [content, id, senderid, receiverid]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                message: "Message not found",
+            });
+        }
+        const message = result.rows[0];
+        
+
+        const io = getIO();
+
+        io.to(senderid).emit("message_updated", {
+            message: message,
+            receiverId: receiverid,
+            senderId : senderid,
+        });
+        io.to(receiverid).emit("message_updated", {
+            message: message,
+            receiverId: receiverid,
+            senderId : senderid,
+        });
+
+        res.status(200).json({
+            content: message
+        });
+    }catch(e){
+        console.log(e);
+
+        res.json({
+            err: e
+        });
+    }
+}
+
 export {
     getMessages,
     createMessages,
+    deleteMessages,
+    editMessages
 }

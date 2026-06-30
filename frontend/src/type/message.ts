@@ -5,3 +5,6 @@ export type Message = {
     content: string,
     created_at: string
 }
+export type response = {
+    message : Message[],
+}

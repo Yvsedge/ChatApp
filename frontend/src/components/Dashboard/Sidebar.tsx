@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type{user} from "../../type/user"
+import type{user} from "@/type/user"
 import { getUsers } from "@/apis/getUser";
 import { errortoast } from "../ToastNotifications/notifications";
 import {usePresense} from "@/hook/usePresense" 

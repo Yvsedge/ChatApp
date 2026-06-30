@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Main from "../components/Dashboard/Main";
-import Sidebar from "../components/Dashboard/Sidebar";
-import type{user} from "../type/user"
+import Main from "@/components/Dashboard/Main";
+import Sidebar from "@/components/Dashboard/Sidebar";
+import type{user} from "@/type/user"
 import { socket } from "@/socket/socket";
 import { PresenseContext } from "@/context/presenseContext";
 
