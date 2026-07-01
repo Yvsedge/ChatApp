@@ -11,6 +11,21 @@ export default function Dashboard() {
     const [rUser, setRUser] = useState<user | undefined>(undefined);
     const [onlineUsers, setOnlineUsers] = useState<string[]>([]);    
     const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set);  
+    const MOBILE_BREAKPOINT = 768;
+
+    const [isMobile, setIsMobile] = useState(
+        () => window.innerWidth < MOBILE_BREAKPOINT
+    );
+
+    useEffect(() => {
+        const resize = () =>
+            setIsMobile(window.innerWidth < 768);
+
+        window.addEventListener("resize", resize);
+
+        return () =>
+            window.removeEventListener("resize", resize);
+    }, []);
     useEffect(() => {
         socket.on("online_users", (user : string[]) => {
             setOnlineUsers(user);
@@ -65,11 +80,27 @@ export default function Dashboard() {
                 typingUsers
             }}
         >
-            <div 
-                className="flex h-screen w-full bg-background text-foreground overflow-hidden"
-            >
-                <Sidebar sendUser={setUser}></Sidebar>
-                <Main rUser={rUser}></Main>
+            <div className="flex h-full w-full bg-background text-foreground overflow-hidden">
+                {isMobile ? (
+                    rUser ? (
+                        <Main
+                            rUser={rUser}
+                            onBack={() => setRUser(undefined)}
+                            isMobile={isMobile}
+                        />
+                    ) : (
+                        <Sidebar sendUser={setUser} />
+                    )
+                ) : (
+                    <>
+                        <Sidebar sendUser={setUser} />
+                        <Main
+                            rUser={rUser}
+                            onBack={() => setRUser(undefined)}
+                            isMobile={isMobile}
+                        />
+                    </>
+                )}
             </div>
         </PresenseContext.Provider>
     );

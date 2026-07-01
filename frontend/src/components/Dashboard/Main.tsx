@@ -3,10 +3,11 @@ import ChatHeader from "./Chat/ChatHeader";
 import ChatInput from "./Chat/ChatInput";
 import ChatList from "./Chat/ChatList";
 type Props = {
-    rUser : user | undefined,
+    rUser: user | undefined;
+    onBack?: () => void;
+    isMobile: boolean;
 };
-
-export default function Main({rUser}: Props) {
+export default function Main({rUser, onBack, isMobile}: Props) {
 
     if (rUser === undefined) {
     return (
@@ -20,7 +21,11 @@ export default function Main({rUser}: Props) {
         <main className="h-full flex-1 flex flex-col overflow-hidden min-h-0">
 
             {/*User Profile*/}
-            <ChatHeader rUser={rUser}></ChatHeader>
+            <ChatHeader
+                rUser={rUser}
+                isMobile={isMobile}
+                onBack={onBack}
+            />
             
             {/* Messages — scrollable, fills space */}
             <ChatList rUser={rUser}></ChatList>

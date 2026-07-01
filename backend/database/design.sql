@@ -12,5 +12,6 @@ CREATE TABLE messages (
     sender_id UUID REFERENCES users(id) ON DELETE CASCADE,
     receiver_id UUID REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
+    is_read BOOLEAN,
     created_at TIMESTAMP
 );

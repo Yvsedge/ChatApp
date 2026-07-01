@@ -8,5 +8,9 @@ router.post("/register", auth.register);
 router.post("/login", auth.login);
 router.get("/", verifyToken, user.getAllUsers);
 router.get("/users",verifyToken, user.getUsers);
+router.get("/current", verifyToken, user.getCurrent);
+router.put("/edit", verifyToken, user.onEdit);
+router.delete("/delete", verifyToken, user.deleteUser);
 
 export default router;
+

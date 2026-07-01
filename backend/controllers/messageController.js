@@ -6,6 +6,28 @@ const getMessages = async (req, res) => {
         const senderid = req.user.userId;
         const receiverid = req.params.id;
 
+        const updateResult = await pool.query(
+            `
+            UPDATE messages
+            SET is_read = TRUE
+            WHERE
+                sender_id = $1
+            AND receiver_id = $2
+            AND is_read = FALSE
+            RETURNING id;
+            `,
+            [receiverid, senderid]
+        );
+
+
+        if (updateResult.rowCount > 0) {
+            const io = getIO();
+
+            io.to(receiverid).emit("messages_read", {
+                readerId: senderid,
+            });
+        }
+
         const result = await pool.query(
             `
             SELECT *
@@ -18,14 +40,10 @@ const getMessages = async (req, res) => {
             `,[senderid,receiverid]
         );
 
-        if(result.rows.length === 0){
-            return res.json({
-                message: []
-            });
-        }
+    return res.status(200).json({
+        message: result.rows,
+    });
 
-        return res.status(200).json({
-            message: result.rows});
     }catch(e){
         console.log(e);
 
@@ -55,7 +73,6 @@ const createMessages = async (req,res) => {
         const io = getIO();
 
         io.to(receiverid).emit("receiver_message", message);
-        io.to(senderid).emit("receiver_message", message);
 
         res.status(201).json({
             content: result.rows[0].content,

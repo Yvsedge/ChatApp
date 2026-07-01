@@ -87,7 +87,7 @@ export default function Login() {
             className="h-screen w-full flex justify-center items-center "
         >
             <div
-                className="bg-card py-20 px-15 border border-border flex justify-center items-center flex-col gap-5 rounded-2xl"
+                className="bg-card py-10 px-15 border border-border flex justify-center items-center flex-col gap-5 rounded-2xl"
             >
                 <p
                     className="text-2xl flex flex-col justify-center items-center"

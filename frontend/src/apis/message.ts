@@ -3,7 +3,8 @@ type Message = {
     sender_id: string,
     receiver_id: string,
     content: string,
-    created_at: string
+    created_at: string,
+    is_unread: string,
 }
 
 type response = {

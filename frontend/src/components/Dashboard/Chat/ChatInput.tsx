@@ -18,6 +18,20 @@ type q = {
     rid : string
 }
 
+type special = {
+    id: string,
+    firstname: string,
+    lastname: string,
+    email: string,
+    content: string,
+    created_at: string,
+    unread_count: number,
+}
+
+type res = {
+    users: special[]
+}
+
 export default function ChatInput({rUser}: Props) {
 
     const [content, setContent] = useState("");
@@ -56,6 +70,7 @@ export default function ChatInput({rUser}: Props) {
             await queryClient.cancelQueries({
                 queryKey: ["messages", rUser.id]
             });
+            
 
             const previousMessage = queryClient.getQueryData<response>([
                 "messages",
@@ -71,6 +86,22 @@ export default function ChatInput({rUser}: Props) {
                     ]
                 })
             );
+
+            queryClient.setQueryData<res>(["userlist"], old => {
+                if (!old) return old;
+
+                return {
+                    users: old.users.map(user =>
+                        user.id === rUser.id
+                            ? {
+                                ...user,
+                                content: mess.content,
+                                created_at: new Date().toISOString(),
+                            }
+                            : user
+                    )
+                };
+            });
 
             return {previousMessage};
         },

@@ -97,7 +97,7 @@ export default function Sign() {
             className="h-screen w-full flex justify-center items-center "
         >
             <div
-                className="bg-card py-15 px-15 border border-border flex justify-center items-center flex-col gap-5 rounded-2xl"
+                className="bg-card py-10 px-15 border border-border flex justify-center items-center flex-col gap-5 rounded-2xl"
             >
                 <p
                     className="text-2xl flex flex-col justify-center items-center"
@@ -112,7 +112,7 @@ export default function Sign() {
                     className="flex flex-col gap-2"
                 >
                 <div
-                    className="flex gap-2"
+                    className="md:flex gap-2"
                 >
                     <label 
                         htmlFor="first"

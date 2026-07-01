@@ -1,11 +1,10 @@
 
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
-export default function ProtectedLayer( {children,}: {children: React.ReactNode;} ) {
+export default function ProtectedLayer( ) {
     const token = localStorage.getItem("token");
 
-    if(!token){
-        return <Navigate to="/Login" replace/>
-    }
-    return children;
+    return token
+        ? <Outlet />
+        : <Navigate to="/login" />;
 }

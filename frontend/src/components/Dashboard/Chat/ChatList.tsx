@@ -14,7 +14,8 @@ type special = {
     lastname: string,
     email: string,
     content: string,
-    created_at: string
+    created_at: string,
+    unread_count: number,
 }
 
 type res = {
@@ -41,8 +42,13 @@ export default function ChatList({rUser}: Props) {
 
     useEffect(() => {
         const handleReceive = (obj: Message) => {
+            const currId = localStorage.getItem("id");
+            const otherUserId =
+                obj.sender_id === currId
+                    ? obj.receiver_id
+                    : obj.sender_id;
             queryClient.setQueryData(
-                ["messages", obj.sender_id],
+                ["messages", otherUserId],
                 (old: response | undefined) => ({
                     message: [
                         ...(old?.message ?? []),
@@ -50,22 +56,26 @@ export default function ChatList({rUser}: Props) {
                     ]
                 })
             );
-            const currId = localStorage.getItem("id");
-            const otherUserId =
-                obj.sender_id === currId
-                    ? obj.receiver_id
-                    : obj.sender_id;
             queryClient.setQueryData<res>(
                 ["userlist"],
                 (old) => {
                     if (!old) return old;
 
+                    const currId = localStorage.getItem("id");
+
+                    const isIncoming = obj.receiver_id === currId;
                     const users = old.users.map((user) =>
                         user.id === otherUserId
                             ? {
                                 ...user,
                                 content: obj.content,
                                 created_at: obj.created_at,
+                                unread_count:
+                                !isIncoming
+                                    ? user.unread_count
+                                    : user.id === rUser.id
+                                        ? 0
+                                        : user.unread_count + 1,
                             }
                             : user
                     );
@@ -148,6 +158,7 @@ export default function ChatList({rUser}: Props) {
     if(isLoading){
         return(<ChatSkeleton></ChatSkeleton>);
     }
+
 
     return (
             <div className="flex-1 overflow-y-auto flex flex-col gap-2 p-4 min-h-0">
