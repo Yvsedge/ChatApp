@@ -178,7 +178,7 @@ export default function ChatBubble({m, rUser}: Props) {
                     <ContextMenuTrigger asChild>
                         <p className={`
                             rounded-2xl px-4 py-2 max-w-[65%] text-foreground text-sm
-                            flex justify-center items-center gap-1
+                            flex justify-center items-center gap-1 whitespace-pre-wrap break-words
                             ${isMine 
                                 ? "bg-bubble-sent hover:cursor-pointer" 
                                 : "bg-bubble-received border border-border"}

@@ -1,26 +1,11 @@
 import { fetchMessages} from "@/apis/message";
-import {  useQuery, useQueryClient } from "@tanstack/react-query";
+import {  useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import type{user} from "@/type/user"
-import type { Message, response } from "@/type/message";
+import type {response } from "@/type/message";
 import { errortoast } from "@/components/ToastNotifications/notifications";
-import { socket } from "@/socket/socket";
 import ChatSkeleton from "./ChatSkeleton";
 import ChatBubble from "./ChatBubble";
-
-type special = {
-    id: string,
-    firstname: string,
-    lastname: string,
-    email: string,
-    content: string,
-    created_at: string,
-    unread_count: number,
-}
-
-type res = {
-    users: special[]
-}
 
 type Props = {
     rUser: user
@@ -38,110 +23,6 @@ export default function ChatList({rUser}: Props) {
     const filtermsgs = msgs.filter(m => m.content !== "");
 
     const bottomRef = useRef<HTMLDivElement>(null);
-    const queryClient = useQueryClient();
-
-    useEffect(() => {
-        const handleReceive = (obj: Message) => {
-            const currId = localStorage.getItem("id");
-            const otherUserId =
-                obj.sender_id === currId
-                    ? obj.receiver_id
-                    : obj.sender_id;
-            queryClient.setQueryData(
-                ["messages", otherUserId],
-                (old: response | undefined) => ({
-                    message: [
-                        ...(old?.message ?? []),
-                        obj
-                    ]
-                })
-            );
-            queryClient.setQueryData<res>(
-                ["userlist"],
-                (old) => {
-                    if (!old) return old;
-
-                    const currId = localStorage.getItem("id");
-
-                    const isIncoming = obj.receiver_id === currId;
-                    const users = old.users.map((user) =>
-                        user.id === otherUserId
-                            ? {
-                                ...user,
-                                content: obj.content,
-                                created_at: obj.created_at,
-                                unread_count:
-                                !isIncoming
-                                    ? user.unread_count
-                                    : user.id === rUser.id
-                                        ? 0
-                                        : user.unread_count + 1,
-                            }
-                            : user
-                    );
-
-                    return {
-                        ...old,
-                        users,
-                    };
-                }
-            );
-        };
-        socket.on('receiver_message', handleReceive);
-
-        socket.on("message_deleted", ({ id, senderId, receiverId }) => {
-            const currentUser = rUser?.id;
-
-            if (
-                senderId !== currentUser &&
-                receiverId !== currentUser
-            ) {
-                return;
-            }
-            queryClient.setQueryData<response>(
-                ["messages", rUser?.id],
-                old => {
-                    if (!old) return old;
-
-                    return {
-                        message: old.message.filter(m => m.id !== id),
-                    };
-                }
-            );
-        });
-
-            socket.on("message_updated", ({message, senderId, receiverId}) => {
-                const currId = localStorage.getItem("id");
-
-                const otherUser =
-                    senderId === currId
-                        ? receiverId
-                        : senderId;
-
-                if (otherUser !== rUser?.id) return;
-
-                queryClient.setQueryData(
-                    ["messages", otherUser],
-                    (old : response) => {
-                        if (!old) return old;
-
-                        return {
-                            message: old.message.map(m =>
-                                m.id === message.id
-                                    ? message
-                                    : m
-                            )
-                        };
-                    }
-                );
-        });
-
-        return () => {
-            socket.off("receiver_message", handleReceive);
-            socket.off("message_deleted");
-            socket.off("message_updated");
-        }
-    }, [queryClient, rUser]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({

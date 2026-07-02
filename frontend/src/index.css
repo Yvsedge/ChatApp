@@ -146,3 +146,21 @@
     @apply font-sans;
     }
 }
+
+/* Wrap textarea in a div that mirrors its content */
+.textarea-wrapper {
+    display: grid;
+}
+
+.textarea-wrapper::after {
+    content: attr(data-value) " ";
+    white-space: pre-wrap;
+    visibility: hidden;
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+.textarea-wrapper textarea {
+    grid-area: 1 / 1 / 2 / 2;
+    resize: none;
+    overflow: hidden;
+}

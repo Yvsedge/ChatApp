@@ -44,7 +44,7 @@ export default function NavBar() {
                     </NavLink>
                     <button
                         onClick={handleLogout}
-                        className="rounded-lg text-sm text-muted-foreground hover:text-error hover:bg-error/10 transition-colors"
+                        className="rounded-lg text-sm text-muted-foreground hover:text-error hover:bg-error/10 transition-colors hover:cursor-pointer"
                     >
                         <LogOut className="hover:bg-surface-secondary transition-colors"/>
                     </button>

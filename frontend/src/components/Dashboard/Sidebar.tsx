@@ -44,6 +44,10 @@ export default function Sidebar({ sendUser }: Props) {
         user => 
             (user.firstname + " " + user.lastname).toLowerCase().includes(searchTerm.trim().toLowerCase())
     )
+    const sortedUserList = [...filtereduserList].sort(
+        (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
 
     const handleSelect = (u : user) => {
         sendUser(u);
@@ -111,7 +115,7 @@ export default function Sidebar({ sendUser }: Props) {
                     {error && (
                         <p className="text-error text-sm px-4 py-3">Failed to load users</p>
                     )}
-                    {filtereduserList.map(u => (
+                    {sortedUserList.map(u => (
                         <button
                             key={u.id}
                             onClick={() => handleSelect(u)}

@@ -3,7 +3,10 @@ import type { user } from "@/type/user";
 import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import type { Message, response } from "@/type/message";
-import { SendHorizonal } from "lucide-react";
+import { Loader2, SendHorizonal } from "lucide-react";
+import EmojiPicker, { Theme } from "emoji-picker-react";
+import { Smile } from "lucide-react";
+import * as emoji from 'node-emoji'
 
 type Props = {
     rUser: user
@@ -35,10 +38,34 @@ type res = {
 export default function ChatInput({rUser}: Props) {
 
     const [content, setContent] = useState("");
-    const inputRef = useRef<HTMLInputElement>(null);
+    const [showPicker, setShowPicker] = useState(false);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isTyping = useRef(false);
     const queryClient = useQueryClient();
+    const pickerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        requestAnimationFrame(() => {
+            inputRef.current?.focus();
+        });
+    }, [rUser.id]);
+    
+    useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+            if (
+                pickerRef.current &&
+                !pickerRef.current.contains(e.target as Node)
+            ) {
+                setShowPicker(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClick);
+
+        return () =>
+            document.removeEventListener("mousedown", handleClick);
+    }, []);
     useEffect(() => {
         return () => {
             if (timeoutRef.current) {
@@ -107,6 +134,10 @@ export default function ChatInput({rUser}: Props) {
         },
         onSuccess: () => {
             setContent("");
+            if (inputRef.current) {
+                inputRef.current.style.height = "0px";
+                setTimeout(() => inputRef.current?.focus(), 0);
+            }
         },
 
         onError: (_,__,context) => {
@@ -153,14 +184,18 @@ export default function ChatInput({rUser}: Props) {
 
         if (!content.trim()) return;
 
+        const finalContent = emoji.emojify(content);
+
         const obj : Message = {
             id : crypto.randomUUID(),
             sender_id: currId ?? "",
             receiver_id: rUser?.id ?? "",
-            content: content,
+            content: finalContent,
             created_at: ""
         };
         await sendMessage.mutateAsync({mess: obj, rid: rUser?.id ?? ""});
+
+        
 
         const id = localStorage.getItem("id");
         socket.emit("stop_typing", {
@@ -172,28 +207,75 @@ export default function ChatInput({rUser}: Props) {
         }
 
         isTyping.current = false;
+
     }
+    const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+    ) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSubmit(e as never);
+        }
+    };
     return (
         <>
-            <form 
-                onSubmit={handleSubmit}
-                className="flex gap-2 px-4 h-[57px] border-t border-border bg-card shrink-0 justify-center items-center"
-            >
-                <input
-                    type="text"
-                    value={content}
-                    onChange={e => handleChange(e.currentTarget.value)}
-                    placeholder="Type a message..."
-                    ref={inputRef}
-                    className="flex-1 bg-surface-secondary border border-border rounded-xl px-4 py-2 text-foreground text-sm placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
-                />
-                <button
-                    type="submit"
-                    disabled={!content.trim() || sendMessage.isPending}
-                    className="bg-primary text-primary-foreground px-5 py-2 rounded-xl text-sm font-medium disabled:opacity-40 transition-opacity"
-                >
-                    <SendHorizonal/>
-                </button>
+            <form onSubmit={handleSubmit} className="border-t border-border bg-card p-3">
+                <div className="flex gap-2 items-end rounded-2xl border border-border bg-surface-secondary px-3 py-2 focus-within:border-primary transition-colors">
+                    
+                    {/* Emoji */}
+                    <div className="relative shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setShowPicker(prev => !prev)}
+                            className="flex items-center justify-center w-9 h-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-surface transition-colors"
+                        >
+                            <Smile size={20} />
+                        </button>
+                        {showPicker && (
+                            <div ref={pickerRef} className="absolute bottom-12 left-0 z-50">
+                                <EmojiPicker
+                                    onEmojiClick={(emoji) => {
+                                        setContent(prev => prev + emoji.emoji);
+                                        setShowPicker(false);
+                                        inputRef.current?.focus();
+                                    }}
+                                    theme={Theme.DARK}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Input */}
+                    <textarea
+                        value={content}
+                        autoFocus
+                        onChange={e => {
+                                handleChange(emoji.emojify(e.currentTarget.value))
+                                if (inputRef.current) {
+                                    inputRef.current.style.height = "0px";
+                                    inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+                                }
+                            }}
+                        placeholder="Type a message..."
+                        ref={inputRef}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                        className="flex-1 self-center bg-transparent resize-none border-none outline-none shadow-none leading-6 max-h-32 overflow-y-auto py-1 text-sm focus:ring-primary"
+                    />
+
+                    {/* Send */}
+                    <button
+                        type="submit"
+                        disabled={!content.trim() || sendMessage.isPending}
+                        className="shrink-0 flex items-center justify-center w-9 h-9 bg-primary text-primary-foreground rounded-xl disabled:opacity-40 transition-all hover:opacity-90"
+                    >
+                        {sendMessage.isPending
+                            ? <Loader2 size={18} className="animate-spin" />
+                            : <SendHorizonal size={18} />
+                        }
+                    </button>
+
+                </div>
             </form>
         </>
     );

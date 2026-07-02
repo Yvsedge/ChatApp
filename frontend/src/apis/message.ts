@@ -4,7 +4,7 @@ type Message = {
     receiver_id: string,
     content: string,
     created_at: string,
-    is_unread: string,
+    is_unread: boolean,
 }
 
 type response = {

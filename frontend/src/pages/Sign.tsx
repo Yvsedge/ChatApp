@@ -185,7 +185,7 @@ export default function Sign() {
                     </label>
                     <button 
                         type="submit"
-                        className="bg-primary text-primary-foreground px-5 py-3 border border-border text-md font-medium disabled:opacity-40 transition-opacity"
+                        className="bg-primary text-primary-foreground px-5 py-3 border border-border text-md font-medium disabled:opacity-40 transition-opacity hover:cursor-pointer"
                         disabled={signUp.isPending}
                     >Register</button>
                 </form>
