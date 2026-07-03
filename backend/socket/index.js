@@ -31,8 +31,8 @@ export function initSocket(server) {
             io.emit("online_users", getOnlineUsers());
         });
 
-        socket.on("disconnect", () => {
-            console.log("Disconnected:", socket.id, "reason");
+        socket.on("disconnect", (reason) => {
+            console.log("Disconnected:", socket.id, reason);
 
             const userId = socket.data.userId;
 

@@ -223,19 +223,21 @@ export default function Dashboard() {
 
     useEffect(() => {
         const id = localStorage.getItem("id");
-
         if (!id) return;
 
         const join = () => socket.emit("join", id);
 
+        socket.connect();
+
+        socket.on("connect", join);
+
         if (socket.connected) {
             join();
-        } else {
-            socket.once("connect", join);
-            socket.connect();
         }
 
-        return () => {socket.off("connect", join)};
+        return () => {
+            socket.off("connect", join);
+        };
     }, []);
     const setUser = (u : user) => {
         setRUser(u);
