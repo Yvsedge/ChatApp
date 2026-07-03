@@ -37,7 +37,7 @@ export default function ChatBubble({m, rUser}: Props) {
         mutationFn: async ({id, rid} : delreq) : Promise<response> => {
             const token = localStorage.getItem('token');
             const res = await fetch(
-                `http://localhost:3000/message/${rid}`,{
+                `${import.meta.env.VITE_API_URL}/message/${rid}`,{
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -95,7 +95,7 @@ export default function ChatBubble({m, rUser}: Props) {
         mutationFn: async ({id, rid, content} : editreq) : Promise<response> => {
             const token = localStorage.getItem('token');
             const res = await fetch(
-                `http://localhost:3000/message/${rid}`,{
+                `${import.meta.env.VITE_API_URL}/message/${rid}`,{
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

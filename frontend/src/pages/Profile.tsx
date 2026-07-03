@@ -65,7 +65,7 @@ export default function Profile() {
         mutationFn: async(obj : insert) : Promise<currUser> => {
                 const token = localStorage.getItem('token');
                 const res = await fetch(
-                    `http://localhost:3000/user/edit`,{
+                    `${import.meta.env.VITE_API_URL}/user/edit`,{
                     method: "PUT",
                     headers: {
                         "Content-Type": "application/json",
@@ -132,7 +132,7 @@ export default function Profile() {
         mutationFn: async() => {
                 const token = localStorage.getItem('token');
                 const res = await fetch(
-                    `http://localhost:3000/user/delete`,{
+                    `${import.meta.env.VITE_API_URL}/user/delete`,{
                     method: "DELETE",
                         headers: {
                             "Content-Type": "application/json",

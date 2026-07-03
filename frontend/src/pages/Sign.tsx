@@ -22,7 +22,7 @@ export default function Sign() {
     const signUp = useMutation({
         mutationFn: async (user : User) => {
             const response = await fetch(
-                `http://localhost:3000/user/register`,
+                `${import.meta.env.VITE_API_URL}/user/register`,
                 {
                     method: "POST",
                     headers: {

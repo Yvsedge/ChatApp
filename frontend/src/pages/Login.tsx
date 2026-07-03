@@ -16,7 +16,7 @@ export default function Login() {
     const loginUser = useMutation({
         mutationFn: async (user : User) => {
             const response = await fetch(
-                `http://localhost:3000/user/login`,
+                `${import.meta.env.VITE_API_URL}/user/login`,
                 {
                     method: "POST",
                     headers: {

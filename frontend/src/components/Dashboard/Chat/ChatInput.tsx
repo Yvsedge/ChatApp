@@ -77,7 +77,7 @@ export default function ChatInput({rUser}: Props) {
         mutationFn: async ({mess, rid} : q) : Promise<msg> => {
             const token = localStorage.getItem('token');
             const res = await fetch(
-                `http://localhost:3000/message/send/${rid}`,{
+                `${import.meta.env.VITE_API_URL}/message/send/${rid}`,{
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

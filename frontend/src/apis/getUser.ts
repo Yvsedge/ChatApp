@@ -29,7 +29,7 @@ type res = {
 export const getUsers = async() : Promise<res> => {
     const token = localStorage.getItem('token');
     const response = await fetch(
-        `http://localhost:3000/user/users`,
+        `${import.meta.env.VITE_API_URL}/user/users`,
         {
             headers: {
                 Authorization : `Bearer ${token}`
@@ -47,7 +47,7 @@ export const getUsers = async() : Promise<res> => {
 export const getCurrent = async() : Promise<currUser> => {
     const token = localStorage.getItem('token');
     const response = await fetch(
-        `http://localhost:3000/user/current`,
+        `${import.meta.env.VITE_API_URL}/user/current`,
         {
             headers: {
                 Authorization: `Bearer ${token}`

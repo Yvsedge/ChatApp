@@ -15,7 +15,7 @@ type response = {
 export const fetchMessages = async(rId : string) : Promise<response> => {
     const token = localStorage.getItem('token');
     const res = await fetch(
-        `http://localhost:3000/message/${rId}`,{
+        `${import.meta.env.VITE_API_URL}/message/${rId}`,{
             headers: {
                 Authorization: `Bearer ${token}`
             }
